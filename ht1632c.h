@@ -87,6 +87,7 @@ class ht1632c
     void fill_l (byte x, byte y, byte color);
     void fill (byte x, byte y, byte color);
     void bezier(int x0, int y0, int x1, int y1, int x2, int y2, byte color);
+	void scrolltext(int y, const char *text, int delaytime, int times, byte dir);
 };
 
 extern ht1632c ht1632;

@@ -1,6 +1,12 @@
+#include <avr/io.h> 
+#include <avr/wdt.h>
 #include <avr/pgmspace.h> 
+#include <WProgram.h>
 #include "ht1632c_font.h"
 #include "ht1632c.h"
+
+#undef abs
+#include <stdlib.h>
 
 extern "C" {
 	#include "WConstants.h";
@@ -522,4 +528,21 @@ void ht1632c::fill(byte x, byte y, byte color)
 {
   fill_r(x, y, color);
   fill_l(x-1, y, color);
+}
+
+void ht1632c::scrolltext(int y, const char *text, int delaytime, int times, byte dir)
+{
+  int c = 0, x, len = strlen(text) + 1;
+  while (times) {
+    for ((dir) ? x = - (len * 6) : x = _geometry_x; (dir) ? x <= _geometry_x : x > - (len * 6); (dir) ? x++ : x--)
+    {
+      for (int i = 0; i < len; i++)
+      {
+        putmediumchar(x + 6 * i,  y, text[i]);
+      }
+      c++;
+      delay(delaytime);
+    }
+    times--;
+  }
 }
