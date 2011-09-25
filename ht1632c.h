@@ -77,6 +77,16 @@ class ht1632c
 	byte get_shadowram(byte, byte);
 	void snapshot_shadowram();
 	byte get_snapshotram(byte, byte);
+	
+    byte getpixel (byte x, byte y);
+    void line(int x0, int y0, int x1, int y1, byte color);
+    void rect(int x0, int y0, int x1, int y1, byte color);
+    void circle(int xm, int ym, int r, byte color);
+    void ellipse(int x0, int y0, int x1, int y1, byte color);
+    void fill_r (byte x, byte y, byte color);
+    void fill_l (byte x, byte y, byte color);
+    void fill (byte x, byte y, byte color);
+    void bezier(int x0, int y0, int x1, int y1, int x2, int y2, byte color);
 };
 
 extern ht1632c ht1632;
