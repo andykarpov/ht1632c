@@ -51,6 +51,7 @@ class ht1632c
   	byte _geometry_x;
   	byte _geometry_y;
   	static const byte _fadedelay = 40;
+	bool _direct_write;
   	
     void chipselect (byte);
 	void chipfree (byte);
@@ -78,6 +79,8 @@ class ht1632c
 	void snapshot_shadowram();
 	byte get_snapshotram(byte, byte);
 	
+	void direct_write(bool);
+	void render();
     byte getpixel (byte x, byte y);
     void line(int x0, int y0, int x1, int y1, byte color);
     void rect(int x0, int y0, int x1, int y1, byte color);

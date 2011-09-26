@@ -95,6 +95,8 @@ ht1632c::ht1632c(byte geometry_x, byte geometry_y, byte data, byte wrclk, byte c
 void ht1632c::plot (char x, char y, char val) {
   
   char addr, bitval;
+ 
+  if (x<0 || x > _geometry_x-1 || y < 0 || y > _geometry_y-1) return;
 
   byte d = x / _geometry_x;
   x = x - _geometry_x*d;
@@ -116,7 +118,9 @@ void ht1632c::plot (char x, char y, char val) {
     _shadowram[(d * 96) + addr] &= ~bitval;
   }
   // Now copy the new memory value to the display
-  senddata(d, addr, _shadowram[(d * 96) + addr]);
+  if (_direct_write) {
+  	senddata(d, addr, _shadowram[(d * 96) + addr]);
+  }
 }
 
 void ht1632c::clear() {
@@ -343,6 +347,8 @@ void ht1632c::setup(byte data, byte wrclk, byte displays) {
 		for (byte i=0; i<128; i++)
 	  		senddata(d, i, 0);  // clear the display!
 	}
+	
+	direct_write(true);
 }
 
 byte ht1632c::get_shadowram(byte x, byte y) {
@@ -533,16 +539,44 @@ void ht1632c::fill(byte x, byte y, byte color)
 void ht1632c::scrolltext(int y, const char *text, int delaytime, int times, byte dir)
 {
   int c = 0, x, len = strlen(text) + 1;
+  byte char_length = 6;
   while (times) {
-    for ((dir) ? x = - (len * 6) : x = _geometry_x; (dir) ? x <= _geometry_x : x > - (len * 6); (dir) ? x++ : x--)
+    for ((dir) ? x = - (len * char_length) : x = _geometry_x; (dir) ? x <= _geometry_x : x > - (len * char_length); (dir) ? x++ : x--)
     {
-      for (int i = 0; i < len; i++)
+	  //direct_write(false);
+	  for (int i = 0; i < len; i++)
       {
-        putmediumchar(x + 6 * i,  y, text[i]);
+		int coord = x + char_length * i;
+		int xx = coord + char_length-1;
+		if (coord < -char_length || coord > _geometry_x) continue;
+		
+        putmediumchar(coord,  y, text[i]);
+		line(xx, y, xx, y+7, 0);
       }
+	  //render();
+	  //direct_write(true);
       c++;
       delay(delaytime);
     }
     times--;
+  }
+}
+
+void ht1632c::direct_write(bool direct) {
+	_direct_write = direct;
+}
+
+void ht1632c::render() {
+  byte addr, bitval;
+
+  for (byte x=0; x < _geometry_x; x++) {
+	for (byte y=0; y < _geometry_y; y++) {
+    	byte d = x / _geometry_x;
+    	x = x - _geometry_x*d; 
+
+  	    bitval = 8>>(y&3);  // compute which bit will need set
+  	    addr = (x<<2) + (y>>2);       // compute which memory word this is in 
+		senddata(d, addr, _shadowram[(d * 96) + addr]);
+    }
   }
 }
