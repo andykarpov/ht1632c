@@ -4,6 +4,7 @@
 #include <WProgram.h>
 #include "ht1632c_font.h"
 #include "ht1632c.h"
+#include "digitalWriteFast.h"
 
 #undef abs
 #include <stdlib.h>
@@ -17,68 +18,13 @@ extern "C" {
  ******************************************************************************/
 
 /**
- * Constructor for one panel
+ * Constructor for one display panel
  * 
- * @param byte data arduino data pin
- * @param byte wrclk arduino wrclk pin 
- * @param byte panel one cs1 arduino pin
  */
-ht1632c::ht1632c(byte geometry_x, byte geometry_y, byte data, byte wrclk, byte cs1)
+ht1632c::ht1632c()
 {
-	set_display_geometry(geometry_x, geometry_y);
-	_cs[0] = cs1;
-	setup(data, wrclk, 1);
-}
-
-/**
- * Constructor for two panels
- * 
- * @param byte data arduino data pin
- * @param byte wrclk arduino wrclk pin 
- * @param byte panel one cs1 arduino pin
- * @param byte panel two cs2 arduino pin
- */
-ht1632c::ht1632c(byte geometry_x, byte geometry_y, byte data, byte wrclk, byte cs1, byte cs2) {
-	set_display_geometry(geometry_x, geometry_y);
-	_cs[0] = cs1;
-	_cs[1] = cs2;
-	setup(data, wrclk, 2);
-}
-
-/**
- * Constructor for three panels
- * 
- * @param byte data arduino data pin
- * @param byte wrclk arduino wrclk pin 
- * @param byte panel one cs1 arduino pin
- * @param byte panel two cs2 arduino pin
- * @param byte panel three cs3 arduino pin
- */
-ht1632c::ht1632c(byte geometry_x, byte geometry_y, byte data, byte wrclk, byte cs1, byte cs2, byte cs3) {
-	set_display_geometry(geometry_x, geometry_y);
-	_cs[0] = cs1;
-	_cs[1] = cs2;
-	_cs[2] = cs3;
-	setup(data, wrclk, 3);
-}
-
-/**
- * Constructor for four panels
- * 
- * @param byte data arduino data pin
- * @param byte wrclk arduino wrclk pin 
- * @param byte panel one cs1 arduino pin
- * @param byte panel two cs2 arduino pin
- * @param byte panel three cs3 arduino pin
- * @param byte panel four cs4 arduino pin
- */
-ht1632c::ht1632c(byte geometry_x, byte geometry_y, byte data, byte wrclk, byte cs1, byte cs2, byte cs3, byte cs4) {
-	set_display_geometry(geometry_x, geometry_y);
-	_cs[0] = cs1;
-	_cs[1] = cs2;
-	_cs[2] = cs3;
-	_cs[3] = cs4;
-	setup(data, wrclk, 4);
+	set_display_geometry(HT1632_GEOMETRY_X, HT1632_GEOMETRY_Y);
+	setup(HT1632_DATA_PIN, HT1632_WRCLK_PIN, 1);
 }
 
 /******************************************************************************
@@ -127,12 +73,12 @@ void ht1632c::clear() {
 	char i;
 	for(byte d=0; d<_displays; d++)
 	{
-		chipselect(_cs[d]);  // Select chip
+		chipselect(HT1632_CS_PIN);  // Select chip
 		writebits(HT1632_ID_WR, 1<<2);  // send ID: WRITE to RAM
 		writebits(0, 1<<6); // Send address
 		for (i = 0; i < 96/2; i++) // Clear entire display
 			writebits(0, 1<<7); // send 8 bits of data
-		chipfree(_cs[d]); // done
+		chipfree(HT1632_CS_PIN); // done
 		for (i=0; i < 96; i++)
 			_shadowram[96*d + i] = 0;
 	}
@@ -290,55 +236,53 @@ void ht1632c::fade_up() {
  ******************************************************************************/
 
 void ht1632c::chipselect (byte chipno) {
-	digitalWrite(chipno, 0);
+	digitalWriteFast2(HT1632_CS_PIN, 0);
 }
 
 void ht1632c::chipfree (byte chipno) {
-	digitalWrite(chipno, 1);
+	digitalWriteFast2(HT1632_CS_PIN, 1);
 }
 
 void ht1632c::writebits (byte bits, byte firstbit) {
 	while (firstbit) {
-		digitalWrite(_wrclk, LOW);
+		digitalWriteFast2(HT1632_WRCLK_PIN, LOW);
 		if (bits & firstbit) {
-		  digitalWrite(_data, HIGH);
+		  digitalWriteFast2(HT1632_DATA_PIN, HIGH);
 		} 
 		else {
-		  digitalWrite(_data, LOW);
+		  digitalWriteFast2(HT1632_DATA_PIN, LOW);
 		}
-		digitalWrite(_wrclk, HIGH);
+		digitalWriteFast2(HT1632_WRCLK_PIN, HIGH);
 		firstbit >>= 1;
 	}
 }
 
 void ht1632c::sendcmd (byte d, byte command) {
-	chipselect(_cs[d]);        // Select chip
+	chipselect(HT1632_CS_PIN);        // Select chip
 	writebits(HT1632_ID_CMD, 1<<2);  // send 3 bits of id: COMMMAND
 	writebits(command, 1<<7);        // send the actual command
 	writebits(0, 1);         	  // one extra dont-care bit in commands.
-	chipfree(_cs[d]);          //done
+	chipfree(HT1632_CS_PIN);          //done
 }
 
 void ht1632c::senddata (byte d, byte address, byte data) {
-	chipselect(_cs[d]);      // Select chip
+	chipselect(HT1632_CS_PIN);      // Select chip
 	writebits(HT1632_ID_WR, 1<<2); // Send ID: WRITE to RAM
 	writebits(address, 1<<6);      // Send address
 	writebits(data, 1<<3);         // Send 4 bits of data
-	chipfree(_cs[d]);        // Done.
+	chipfree(HT1632_CS_PIN);        // Done.
 }
 
 void ht1632c::setup(byte data, byte wrclk, byte displays) {
 	_displays = displays;
-	_data = data;
-	_wrclk = wrclk;
 	
 	for (byte d=0; d<_displays; d++) {
-		pinMode(_cs[d], OUTPUT);
+		pinMode(HT1632_CS_PIN, OUTPUT);
 
-		digitalWrite(_cs[d], HIGH);  // Unselect (active low)
+		digitalWriteFast2(HT1632_CS_PIN, HIGH);  // Unselect (active low)
 		 
-		pinMode(_wrclk, OUTPUT);
-		pinMode(_data, OUTPUT);
+		pinMode(HT1632_WRCLK_PIN, OUTPUT);
+		pinMode(HT1632_DATA_PIN, OUTPUT);
 
 		sendcmd(d, HT1632_CMD_SYSON);    // System on 
 		sendcmd(d, HT1632_CMD_LEDON);    // LEDs on 
@@ -540,6 +484,7 @@ void ht1632c::scrolltext(int y, const char *text, int delaytime, int times, byte
 {
   int c = 0, x, len = strlen(text) + 1;
   byte char_length = 6;
+  byte char_height = 7;
   while (times) {
     for ((dir) ? x = - (len * char_length) : x = _geometry_x; (dir) ? x <= _geometry_x : x > - (len * char_length); (dir) ? x++ : x--)
     {
@@ -548,10 +493,9 @@ void ht1632c::scrolltext(int y, const char *text, int delaytime, int times, byte
       {
 		int coord = x + char_length * i;
 		int xx = coord + char_length-1;
-		if (coord < -char_length || coord > _geometry_x) continue;
-		
-        putmediumchar(coord,  y, text[i]);
-		line(xx, y, xx, y+7, 0);
+		if (coord < -char_length || coord > _geometry_x) continue;		
+        	putmediumchar(coord,  y, text[i]);
+		line(xx, y, xx, y+char_height, 0);
       }
 	  //render();
 	  //direct_write(true);
@@ -579,4 +523,10 @@ void ht1632c::render() {
 		senddata(d, addr, _shadowram[(d * 96) + addr]);
     }
   }
+}
+
+void ht1632c::brightness(char intensity) {
+	if (intensity < 0 || intensity >= 15) return;	
+    sendcmd(0, HT1632_CMD_PWM + intensity); //send intensity commands using CS0 for display 0
+    sendcmd(1, HT1632_CMD_PWM + intensity); //send intensity commands using CS0 for display 1
 }

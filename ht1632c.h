@@ -8,6 +8,12 @@
 #ifndef _HT1632C_H_
 #define _HT1632C_H_
 
+#define HT1632_DATA_PIN 10 /* Arduino digital pin connected to display DATA pin */
+#define HT1632_WRCLK_PIN 11 /* Arduino digital pin connected to display WRCLK pin */
+#define HT1632_CS_PIN 4 /* Arduino digital pin connected to display CS1 pin */
+#define HT1632_GEOMETRY_X 24 /* display width */
+#define HT1632_GEOMETRY_Y 16 /* display height */
+
 /*
  * commands written to the chip consist of a 3 bit "ID", followed by
  * either 9 bits of "Command code" or 7 bits of address + 4 bits of data.
@@ -44,16 +50,13 @@ class ht1632c
 {
   private:
   	byte _shadowram[384];  // our copy of the display's RAM
-  	byte _data;
-  	byte _wrclk;
-  	byte _cs[4];
   	byte _displays;
   	byte _geometry_x;
   	byte _geometry_y;
   	static const byte _fadedelay = 40;
 	bool _direct_write;
   	
-    void chipselect (byte);
+    	void chipselect (byte);
 	void chipfree (byte);
 	void writebits (byte, byte);
 	void sendcmd (byte, byte);
@@ -61,10 +64,7 @@ class ht1632c
 	void setup(byte, byte, byte);
 	void set_display_geometry(byte, byte); 
   public:
-    ht1632c(byte, byte, byte, byte, byte);
-    ht1632c(byte, byte, byte, byte, byte, byte);
-    ht1632c(byte, byte, byte, byte, byte, byte, byte);
-    ht1632c(byte, byte, byte, byte, byte, byte, byte, byte);  
+        ht1632c();
 	void plot (char, char, char);
 	void line (char, char, char, char, char);
 	void clear(void);
@@ -75,21 +75,22 @@ class ht1632c
 	void flashing_cursor(byte, byte, byte, byte, byte);
 	void fade_down(void);
 	void fade_up(void);
+	void brightness(char);
 	byte get_shadowram(byte, byte);
 	void snapshot_shadowram();
 	byte get_snapshotram(byte, byte);
 	
 	void direct_write(bool);
 	void render();
-    byte getpixel (byte x, byte y);
-    void line(int x0, int y0, int x1, int y1, byte color);
-    void rect(int x0, int y0, int x1, int y1, byte color);
-    void circle(int xm, int ym, int r, byte color);
-    void ellipse(int x0, int y0, int x1, int y1, byte color);
-    void fill_r (byte x, byte y, byte color);
-    void fill_l (byte x, byte y, byte color);
-    void fill (byte x, byte y, byte color);
-    void bezier(int x0, int y0, int x1, int y1, int x2, int y2, byte color);
+	byte getpixel (byte x, byte y);
+    	void line(int x0, int y0, int x1, int y1, byte color);
+    	void rect(int x0, int y0, int x1, int y1, byte color);
+    	void circle(int xm, int ym, int r, byte color);
+    	void ellipse(int x0, int y0, int x1, int y1, byte color);
+    	void fill_r (byte x, byte y, byte color);
+    	void fill_l (byte x, byte y, byte color);
+    	void fill (byte x, byte y, byte color);
+    	void bezier(int x0, int y0, int x1, int y1, int x2, int y2, byte color);
 	void scrolltext(int y, const char *text, int delaytime, int times, byte dir);
 };
 
