@@ -1,16 +1,18 @@
 #include "ht1632c.h"
+#include <digitalWriteFast.h>
 
 // sure electronics 24x16 panel connected to pins
 // DATA - pin 10
 // WRCLK - pin 11
 // CS1 - pin 4
-ht1632c panel(24,16, 10,11,4);
+ht1632c panel;
 
 void setup() {
 
 }
 
 void loop() {
+  demoFlashingCursor();
   demoScrollingText();
   demoLines();
   demoRects();
@@ -18,10 +20,25 @@ void loop() {
   demoFill();
 }
 
+void demoFlashingCursor() {
+   panel.clear();
+   panel.flashing_cursor(0,1,5,6,3);
+   byte x = 0;
+   char* text = "DEMO";
+   for (byte i=0; i<strlen(text); i++) {
+      panel.flashing_cursor(i*6,1,5,6,1);
+      delay(50);
+      panel.putmediumchar(i*6,1,text[i]);
+      delay(400);
+   }
+   delay(2000);
+   panel.fade_down();
+}
+
 void demoScrollingText() {
   panel.clear();
   panel.fade_up();
-  panel.scrolltext(1, "SURE ELECTRONICS HT1632C DISPLAY DEMO", 0, 5, 0);
+  panel.scrolltext(1, "WELCOME TO THE SURE ELECTRONICS DISPLAY DEMO", 12, 1, 0);
   delay(1000);
 }
 
@@ -33,7 +50,7 @@ void demoLines() {
     byte y2 = random(0,15);
     panel.line(x1,y1,x2,y2,1);
     delay(50);
-    panel.fade_down();
+    //panel.fade_down();
     panel.clear();
   }
 }
@@ -53,8 +70,8 @@ void demoCircles() {
      panel.circle(xm,ym,i,0); 
    }
    panel.circle(xm,ym,r,1);
-   delay(200);
-   panel.fade_down();
+   //delay(200);
+   //panel.fade_down();
    panel.clear();
   }
 }
