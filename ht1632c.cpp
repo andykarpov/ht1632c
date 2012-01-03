@@ -93,46 +93,12 @@ void ht1632c::clear() {
 	}
 }
 
-void ht1632c::putmediumchar(byte x, byte y, char c) {
-  byte dots;
-  if (c >= 'A' && c <= 'Z' || (c >= 'a' && c <= 'z') ) {
-    c &= 0x1F;   // A-Z maps to 1-26
-  }
-  else if (c >= 0x80) { // utf-8 chars
-    c &= 0x3f;
-    c = pgm_read_byte_near(utf_recode + c - 0x10);
-  } 
-  else if (c >= '0' && c <= '9') {
-    c = (c - '0') + 31;
-  } 
-  else if (c == ' ') {
-    c = 0; // space
-  }
-  else if (c == '.') {
-    c = 27; // full stop
-  }
-  else if (c == '\'') {
-    c = 28; // single quote mark
-  }  
-  else if (c == ':') {
-    c = 29; // clock_mode selector arrow
-  }
-  else if (c == '>') {
-    c = 30; // clock_mode selector arrow
-  }
-
-  for (char col=0; col< 5; col++) {
-    dots = pgm_read_byte_near(&ht1632c_font_5x7[c][col]);
-    for (char row=0; row < 7; row++) {
-      if (dots & (64>>row))   	     // only 7 rows.
-        plot(x+col, y+row, 1);
-      else 
-        plot(x+col, y+row, 0);
-    }
-  }
+void ht1632c::set_font(byte width, byte height) {
+	_font_width = width;
+	_font_height = height;
 }
 
-void ht1632c::puttinychar(byte x, byte y, char c) {
+void ht1632c::put_char(byte x, byte y, char c) {
   byte dots;
   if (c >= 'A' && c <= 'Z' || (c >= 'a' && c <= 'z') ) {
     c &= 0x1F;   // A-Z maps to 1-26
@@ -154,44 +120,44 @@ void ht1632c::puttinychar(byte x, byte y, char c) {
     c = 30; // single quote mark
   }
 
-  for (char col=0; col< 3; col++) {
-    dots = pgm_read_byte_near(&ht1632c_font_3x5[c][col]);
-    for (char row=0; row < 5; row++) {
-      if (dots & (16>>row))   	   
-        plot(x+col, y+row, 1);
-      else 
-        plot(x+col, y+row, 0);
-    }
-  }  
-}
-
-void ht1632c::putbigdigit(byte x, byte y, int digit) {
-	for (byte row=0; row < 12; row++)
+  if (_font_height <= 8) {
+  	for (char col=0; col< _font_width; col++) {
+		switch (_font_width) {
+    		case 3:
+				dots = pgm_read_byte_near(&ht1632c_font_3x5[c][col]);
+			break;
+			case 5:
+				dots = pgm_read_byte_near(&ht1632c_font_5x7[c][col]);
+			break;
+		}
+    	for (char row=0; row < _font_height; row++) {
+      		if (bitRead(dots, _font_height-row-1))   	    	
+        		plot(x+col, y+row, 1);
+      		else 
+        		plot(x+col, y+row, 0);
+    	}
+  	}
+  } else {
+	c = c-31; // only digits
+	for (byte row=0; row < _font_height; row++)
 	{
-		byte rowDots = pgm_read_byte_near(&ht1632c_font_6x12[digit][row]);
-		for (byte col=1; col<6; col++)
+		dots = pgm_read_byte_near(&ht1632c_font_6x12[c][row]);
+		for (byte col=1; col<_font_width; col++)
 		{
-			if (rowDots & (1<<(5-col)))
+			if (bitRead(dots, _font_width-1-col))
 				plot(x+col, y+row, 1);
 			else 
 				plot(x+col, y+row, 0);
 		}
 	}
+  }
 }
 
-void ht1632c::putstring(byte x, byte y, byte width, char* c) {
+void ht1632c::putstring(byte x, byte y, char* c) {
 	byte i =0;
 	while(c[i]) {
-		switch (width) {
-			case 3:
-				puttinychar(x, y, c[i]);
-				x = x+4;
-			break;
-			case 5:
-				putmediumchar(x, y, c[i]);
-				x = x+6;
-			break;
-		}
+		put_char(x,y, c[i]);
+		x = x + _font_width + 1;
 		i++;
 	}
 }
@@ -496,8 +462,8 @@ void ht1632c::fill(byte x, byte y, byte color)
 void ht1632c::scrolltext(int y, const char *text, int delaytime, int times, byte dir)
 {
   int c = 0, x, len = strlen(text) + 1;
-  byte char_length = 6;
-  byte char_height = 7;
+  byte char_length = _font_width+1;
+  byte char_height = _font_height;
   while (times) {
     for ((dir) ? x = - (len * char_length) : x = _geometry_x; (dir) ? x <= _geometry_x : x > - (len * char_length); (dir) ? x++ : x--)
     {
@@ -507,7 +473,7 @@ void ht1632c::scrolltext(int y, const char *text, int delaytime, int times, byte
 		int coord = x + char_length * i;
 		int xx = coord + char_length-1;
 		if (coord < -char_length || coord > _geometry_x) continue;		
-        	putmediumchar(coord,  y, text[i]);
+        	put_char(coord,  y, text[i]);
 		line(xx, y, xx, y+char_height, 0);
       }
 	  //render();

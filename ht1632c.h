@@ -51,10 +51,11 @@ class ht1632c
   	byte _displays;
   	byte _geometry_x;
   	byte _geometry_y;
+	byte _font_width;
+	byte _font_height;
   	static const byte _fadedelay = 40;
 	bool _direct_write;
-  	
-    	void chipselect (byte);
+    void chipselect (byte);
 	void chipfree (byte);
 	void writebits (byte, byte);
 	void sendcmd (byte, byte);
@@ -62,14 +63,13 @@ class ht1632c
 	void setup(byte, byte, byte);
 	void set_display_geometry(byte, byte); 
   public:
-        ht1632c();
+    ht1632c();
 	void plot (char, char, char);
 	void line (char, char, char, char, char);
 	void clear(void);
-	void putmediumchar(byte, byte, char);
-	void puttinychar(byte, byte, char);
-	void putbigdigit(byte, byte, int);
-	void putstring(byte, byte, byte, char*);
+	void set_font(byte, byte);
+	void put_char(byte, byte, char);
+	void putstring(byte, byte, char*);
 	void flashing_cursor(byte, byte, byte, byte, byte);
 	void fade_down(void);
 	void fade_up(void);
@@ -81,14 +81,14 @@ class ht1632c
 	void direct_write(bool);
 	void render();
 	byte getpixel (byte x, byte y);
-    	void line(int x0, int y0, int x1, int y1, byte color);
-    	void rect(int x0, int y0, int x1, int y1, byte color);
-    	void circle(int xm, int ym, int r, byte color);
-    	void ellipse(int x0, int y0, int x1, int y1, byte color);
-    	void fill_r (byte x, byte y, byte color);
-    	void fill_l (byte x, byte y, byte color);
-    	void fill (byte x, byte y, byte color);
-    	void bezier(int x0, int y0, int x1, int y1, int x2, int y2, byte color);
+    void line(int x0, int y0, int x1, int y1, byte color);
+    void rect(int x0, int y0, int x1, int y1, byte color);
+    void circle(int xm, int ym, int r, byte color);
+    void ellipse(int x0, int y0, int x1, int y1, byte color);
+    void fill_r (byte x, byte y, byte color);
+    void fill_l (byte x, byte y, byte color);
+    void fill (byte x, byte y, byte color);
+    void bezier(int x0, int y0, int x1, int y1, int x2, int y2, byte color);
 	void scrolltext(int y, const char *text, int delaytime, int times, byte dir);
 };
 
