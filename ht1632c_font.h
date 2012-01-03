@@ -1,3 +1,8 @@
+/*#include "ht1632c_font_3x5.h"
+#include "ht1632c_font_5x7.h"
+#include "ht1632c_font_6x12.h"
+#include "ht1632c_font_8x8.h"
+*/
 const int ht1632c_font_5x7_count = 51;
 unsigned char PROGMEM ht1632c_font_5x7[51][5] = {
 	{0,0,0,0,0}, // space

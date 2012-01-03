@@ -40,9 +40,7 @@
 #define HT1632_CMD_PWM    0xA0	/* CMD= 101x-PPPP-x PWM duty cycle */
 #define HT1632_CMD_BITS (1<<7)
 
-extern "C" {
-	#include "WConstants.h";
-}
+#include <Arduino.h>
 
 #undef round
 
