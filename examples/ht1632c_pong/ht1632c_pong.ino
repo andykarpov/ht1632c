@@ -106,8 +106,11 @@ void playerScored(byte player) {
 
   //draw score
   panel.clear();
-  panel.putbigdigit(LEFT_SCORE_X,SCORE_Y, leftPlayerScore);
-  panel.putbigdigit(RIGHT_SCORE_X,SCORE_Y, rightPlayerScore);
+  panel.set_font(5,12);
+  char sc[2];
+  sprintf(sc, "%d%d", leftPlayerScore, rightPlayerScore);
+  panel.put_char(LEFT_SCORE_X,SCORE_Y, sc[0]);
+  panel.put_char(RIGHT_SCORE_X,SCORE_Y, sc[1]);
 
   panel.rect(11,3,12,4,1);
   panel.rect(11,11,12,12,1);
@@ -140,8 +143,8 @@ void drawMenu() {
   char prevVolX = 1;
   char prevVolY = 1;
   panel.clear();
-  panel.putstring(0,0,5,"PONG");
-  //panel.putstring(0,8,5,"PONG");
+  panel.set_font(5,7);
+  panel.putstring(0,0,"PONG");
   delay(1000);
   while(!buttonStatus) {
     processInputs();
@@ -251,8 +254,9 @@ void loop() {
   } 
   if(state == GAME_OVER) {
     panel.clear();
-    panel.putstring(0,0,5,"GAME");
-    panel.putstring(0,8,5,"OVER"); 
+    panel.set_font(5,7);
+    panel.putstring(0,0,"GAME");
+    panel.putstring(0,8,"OVER"); 
 
   // iterate over the notes of the melody:
   for (int thisNote = 0; thisNote < 8; thisNote++) {

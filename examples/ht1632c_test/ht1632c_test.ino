@@ -1,13 +1,22 @@
+/**
+ * A simple clock with big digits example
+ *
+ * Based on DS1307 RTC and 24x16 dot matrix display from Sure Electronics
+ * Author Andy Karpov <andy.karpov@gmail.com>
+ * Copyright (c) 2012
+ */
+
 #include <Wire.h>
-#include "ht1632c.h"
+#include <digitalWriteFast.h>
+#include <ht1632c.h>
 #include <RealTimeClockDS1307.h>
-#include "Button.h"
+#include <Button.h>
 
 // sure electronics 24x16 panel connected to pins
 // DATA - pin 10
 // WRCLK - pin 11
 // CS1 - pin 4
-ht1632c panel(24,16,10,11,4);
+ht1632c panel;
 
 Button btnMode(2, PULLUP);
 Button btnSet(3, PULLUP);
@@ -55,25 +64,18 @@ void loop() {
  */
 void printTime(int h, int m) {
 
-    panel.putbigdigit(-1, 2, (h>9) ? (h/10) : 0);
-    panel.putbigdigit( 5, 2, h % 10);
-
-    panel.putbigdigit(12, 2, (m>9) ? (m/10) : 0);
-    panel.putbigdigit(18, 2, m % 10);
+    char time[4];
+    panel.set_font(5,12);
+    sprintf(time, "%d%d%d%d", (h>9) ? (h/10) : 0, h % 10, (m>9) ? (m/10) : 0, m % 10); 
+  
+    panel.put_char(0, 2, time[0]);
+    panel.put_char( 6, 2, time[1]);
+    panel.put_char(13, 2, time[2]);
+    panel.put_char(19, 2, time[3]);
 }
 
 void printDots(boolean on) 
-{
-/*  panel.plot(11, 4, on);
-  panel.plot(11, 5, on);
-  panel.plot(12, 4, on);
-  panel.plot(12, 5, on);  
-  
-  panel.plot(11, 11, on);
-  panel.plot(11, 10, on);
-  panel.plot(12, 11, on);
-  panel.plot(12, 10, on); */
-  
+{  
   for (byte i=0; i<24; i++) {
     panel.plot(i,0, on);
     panel.plot(i,15, !on);

@@ -9,19 +9,6 @@
 #undef abs
 #include <stdlib.h>
 
-/*extern "C" {
-	#include "WConstants.h";
-}*/
-
-// it is a russian alphabet translation
-// except 0401 --> 0xa2 = ╗, 0451 --> 0xb5
-PROGMEM prog_uchar utf_recode[] = 
-       { 0x41,0xa0,0x42,0xa1,0xe0,0x45,0xa3,0xa4,0xa5,0xa6,0x4b,0xa7,0x4d,0x48,0x4f,
-        0xa8,0x50,0x43,0x54,0xa9,0xaa,0x58,0xe1,0xab,0xac,0xe2,0xad,0xae,0x62,0xaf,0xb0,0xb1,
-        0x61,0xb2,0xb3,0xb4,0xe3,0x65,0xb6,0xb7,0xb8,0xb9,0xba,0xbb,0xbc,0xbd,0x6f,
-        0xbe,0x70,0x63,0xbf,0x79,0xe4,0x78,0xe5,0xc0,0xc1,0xe6,0xc2,0xc3,0xc4,0xc5,0xc6,0xc7
-};
-
 /******************************************************************************
  * Constructors
  ******************************************************************************/
@@ -100,51 +87,34 @@ void ht1632c::set_font(byte width, byte height) {
 
 void ht1632c::put_char(byte x, byte y, char c) {
   byte dots;
-  if (c >= 'A' && c <= 'Z' || (c >= 'a' && c <= 'z') ) {
-    c &= 0x1F;   // A-Z maps to 1-26
-  } 
-  else if (c >= '0' && c <= '9') {
-    c = (c - '0') + 31;
-  } 
-  else if (c == ' ') {
-    c = 0; // space
-  }
-  else if (c == '.') {
-    c = 27; // full stop
-  }
-  else if (c == '\'') {
-    c = 28; // single quote mark
-  } else if (c == '!') {
-    c = 29; // single quote mark
-  }  else if (c == '?') {
-    c = 30; // single quote mark
-  }
-
+  c = c - 32; // offset
   if (_font_height <= 8) {
-  	for (char col=0; col< _font_width; col++) {
+	for (char col=0; col< _font_width; col++) {
 		switch (_font_width) {
-    		case 3:
-				dots = pgm_read_byte_near(&ht1632c_font_3x5[c][col]);
-			break;
-			case 5:
-				dots = pgm_read_byte_near(&ht1632c_font_5x7[c][col]);
-			break;
+		case 3:
+			dots = pgm_read_byte_near(&ht1632c_font_3x5[c][col]);
+		break;
+		case 4:
+			dots = pgm_read_byte_near(&ht1632c_font_4x7[c][col]); 
+		break;
+		case 5:
+			dots = pgm_read_byte_near(&ht1632c_font_5x7[c][col]);
+		break;
 		}
     	for (char row=0; row < _font_height; row++) {
-      		if (bitRead(dots, _font_height-row-1))   	    	
+      		if (bitRead(dots, 7-row))
         		plot(x+col, y+row, 1);
       		else 
         		plot(x+col, y+row, 0);
     	}
   	}
   } else {
-	c = c-31; // only digits
 	for (byte row=0; row < _font_height; row++)
 	{
-		dots = pgm_read_byte_near(&ht1632c_font_6x12[c][row]);
-		for (byte col=1; col<_font_width; col++)
+		dots = pgm_read_byte_near(&ht1632c_font_5x12[c][row]);
+		for (byte col=0; col<_font_width; col++)
 		{
-			if (bitRead(dots, _font_width-1-col))
+			if (bitRead(dots, 7-col))
 				plot(x+col, y+row, 1);
 			else 
 				plot(x+col, y+row, 0);

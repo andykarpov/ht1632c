@@ -22,13 +22,14 @@ void loop() {
 
 void demoFlashingCursor() {
    panel.clear();
+   panel.set_font(5,7);
    panel.flashing_cursor(0,1,5,6,3);
    byte x = 0;
    char* text = "DEMO";
    for (byte i=0; i<strlen(text); i++) {
       panel.flashing_cursor(i*6,1,5,6,1);
       delay(50);
-      panel.putmediumchar(i*6,1,text[i]);
+      panel.put_char(i*6,1,text[i]);
       delay(400);
    }
    delay(2000);
